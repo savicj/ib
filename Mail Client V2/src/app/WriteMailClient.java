@@ -2,7 +2,11 @@ package app;
 
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.security.cert.Certificate;
+import java.security.KeyStore;
+import java.security.PublicKey;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -14,6 +18,7 @@ import org.apache.xml.security.utils.JavaUtils;
 
 import com.google.api.services.gmail.Gmail;
 
+import model.mailclient.MailBody;
 import util.Base64;
 import util.GzipUtil;
 import util.IVHelper;
@@ -71,13 +76,33 @@ public class WriteMailClient extends MailClient {
 			String ciphersubjectStr = Base64.encodeToString(ciphersubject);
 			System.out.println("Kriptovan subject: " + ciphersubjectStr);
 			
+			KeyStore ks = KeyStore.getInstance("JKS");
+			ks.load(new FileInputStream("./data/useraKS.jks"), "userap".toCharArray());
+			Certificate ubc = ks.getCertificate("userb");
+			PublicKey ubpk = ubc.getPublicKey();
 			
-			//snimaju se bajtovi kljuca i IV.
-			JavaUtils.writeBytesToFilename(KEY_FILE, secretKey.getEncoded());
-			JavaUtils.writeBytesToFilename(IV1_FILE, ivParameterSpec1.getIV());
+			//inicijalizacija za sifrovanje
+			Cipher rsaCipherEnc = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+			rsaCipherEnc.init(Cipher.ENCRYPT_MODE, ubpk);
+			
+			//sifrovanje
+			byte[] cipherkey = rsaCipherEnc.doFinal(secretKey.getEncoded());
+			String cipherkeyStr = Base64.encodeToString(cipherkey);
+			System.out.println("Kljuc: " + secretKey.hashCode());
+			System.out.println("Kriptovan kljuc: " + cipherkeyStr);
+			
+			
+			MailBody mb = new MailBody(ciphertextStr, ivParameterSpec1.getIV(), ivParameterSpec2.getIV(), cipherkeyStr);
+			String mailBody = mb.toCSV();
+			System.out.println("Telo email-a: " + mailBody);
+			
+			
+			//snimaju se bajtovi kljuca i IV. 
+			JavaUtils.writeBytesToFilename(KEY_FILE, secretKey.getEncoded()); 
+			JavaUtils.writeBytesToFilename(IV1_FILE, ivParameterSpec1.getIV()); 
 			JavaUtils.writeBytesToFilename(IV2_FILE, ivParameterSpec2.getIV());
 			
-        	MimeMessage mimeMessage = MailHelper.createMimeMessage(reciever, ciphersubjectStr, ciphertextStr);
+        	MimeMessage mimeMessage = MailHelper.createMimeMessage(reciever, ciphersubjectStr, mailBody);
         	MailWritter.sendMessage(service, "me", mimeMessage);
         	
         }catch (Exception e) {

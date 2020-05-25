@@ -1,11 +1,17 @@
 package app;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +31,7 @@ import org.apache.xml.security.utils.JavaUtils;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Message;
 
+import model.mailclient.MailBody;
 import support.MailHelper;
 import support.MailReader;
 import util.Base64;
@@ -36,10 +43,12 @@ public class ReadMailClient extends MailClient {
 	public static boolean ONLY_FIRST_PAGE = true;
 	
 	private static final String KEY_FILE = "./data/session.key";
-	private static final String IV1_FILE = "./data/iv1.bin";
-	private static final String IV2_FILE = "./data/iv2.bin";
+//	private static final String IV1_FILE = "./data/iv1.bin";
+//	private static final String IV2_FILE = "./data/iv2.bin";
 	
-	public static void main(String[] args) throws IOException, InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, IllegalBlockSizeException, BadPaddingException, MessagingException, NoSuchPaddingException, InvalidAlgorithmParameterException {
+	public static void main(String[] args) throws IOException, InvalidKeyException, NoSuchAlgorithmException,
+				InvalidKeySpecException, IllegalBlockSizeException, BadPaddingException, MessagingException, NoSuchPaddingException,
+				InvalidAlgorithmParameterException, UnrecoverableKeyException, KeyStoreException, CertificateException {
         // Build a new authorized API client service.
         Gmail service = getGmailService();
         ArrayList<MimeMessage> mimeMessages = new ArrayList<MimeMessage>();
@@ -79,23 +88,38 @@ public class ReadMailClient extends MailClient {
 	    
         //TODO: Decrypt a message and decompress it. The private key is stored in a file.
 		Cipher aesCipherDec = Cipher.getInstance("AES/CBC/PKCS5Padding");
-		SecretKey secretKey = new SecretKeySpec(JavaUtils.getBytesFromFile(KEY_FILE), "AES");
+		//SecretKey secretKey = new SecretKeySpec(JavaUtils.getBytesFromFile(KEY_FILE), "AES");
+		
+		//izvlacenje enkriptovane poruke
+		MailBody mb = new MailBody(MailHelper.getText(chosenMessage));
+		IvParameterSpec ivParameterSpec1 = new IvParameterSpec(mb.getIV1Bytes());
+		IvParameterSpec ivParameterSpec2 = new IvParameterSpec(mb.getIV2Bytes());
+		byte[] encSecretkey = mb.getEncKeyBytes();
+		String encBody = mb.getEncMessage();
 		
 		
-		byte[] iv1 = JavaUtils.getBytesFromFile(IV1_FILE);
-		IvParameterSpec ivParameterSpec1 = new IvParameterSpec(iv1);
+		//Keystore
+		KeyStore ks = KeyStore.getInstance("JKS");
+		ks.load(new FileInputStream("./data/userbKS.jks"), "userbp".toCharArray());
+		PrivateKey ubpk = (PrivateKey) ks.getKey("userb", "userbp".toCharArray());
+		
+		Cipher rsaCipherDec = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+		rsaCipherDec.init(Cipher.DECRYPT_MODE, ubpk);
+		byte[] decryptedKey = rsaCipherDec.doFinal(encSecretkey);
+		
+		SecretKey secretKey = new SecretKeySpec(decryptedKey, "AES");
+		System.out.println("Dekriptovan kljuc: " + secretKey.hashCode());
+		
+		//inicijalizacija za dekriptovanje
 		aesCipherDec.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec1);
+				
 		
-		String str = MailHelper.getText(chosenMessage);
-		byte[] bodyEnc = Base64.decode(str);
-		
-		String receivedBodyTxt = new String(aesCipherDec.doFinal(bodyEnc));
+		//dekripcija i dekompresija body-a
+		String receivedBodyTxt = new String(aesCipherDec.doFinal(Base64.decode(encBody)));
 		String decompressedBodyText = GzipUtil.decompress(Base64.decode(receivedBodyTxt));
 		System.out.println("Body text: " + decompressedBodyText);
 		
 		
-		byte[] iv2 = JavaUtils.getBytesFromFile(IV2_FILE);
-		IvParameterSpec ivParameterSpec2 = new IvParameterSpec(iv2);
 		//inicijalizacija za dekriptovanje
 		aesCipherDec.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec2);
 		
