@@ -61,7 +61,7 @@ public class MailHelper {
 
         return null;
     }
-    
+    //gitgreska
     public static MimeMessage createMimeMessage(String reciever,String subject, String  body, File file) throws MessagingException {
     	
     	Properties props = new Properties();
