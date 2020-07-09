@@ -91,7 +91,6 @@ public class WriteMailClient extends MailClient {
             //slanje
     		MimeMessage mimeMessage = MailHelper.createMimeMessage(reciever, "", "", file);
         	MailWritter.sendMessage(service, "me", mimeMessage);
-    		//git greska
 
         	
         
