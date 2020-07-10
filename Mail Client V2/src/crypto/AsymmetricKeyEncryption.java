@@ -90,7 +90,7 @@ public class AsymmetricKeyEncryption {
 			BufferedInputStream in = new BufferedInputStream(new FileInputStream(KEY_STORE_FILE));
 			ks.load(in, "123".toCharArray());
 
-			if (ks.isKeyEntry("userb")) {
+			if (ks.isKeyEntry("usera")) {
 				Certificate cert = ks.getCertificate("userbCER");
 				return cert;
 			} else
