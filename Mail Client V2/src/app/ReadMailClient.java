@@ -121,6 +121,52 @@ public class ReadMailClient extends MailClient {
 		//ispis sadrzaja poruke1
 		System.out.print("\nEMAIL");
 		CreateXMLDOM.writeEmailContent(EMAIL);
+		
+		
+		//SA KONTROLNE TACKE, VISE MI NIJE POTREBNO
+
+
+//      //TODO: Decrypt a message and decompress it. The private key is stored in a file.
+//		Cipher aesCipherDec = Cipher.getInstance("AES/CBC/PKCS5Padding");
+//		//SecretKey secretKey = new SecretKeySpec(JavaUtils.getBytesFromFile(KEY_FILE), "AES");
+//		
+//		//izvlacenje enkriptovane poruke
+//		MailBody mb = new MailBody(MailHelper.getText(chosenMessage));
+//		IvParameterSpec ivParameterSpec1 = new IvParameterSpec(mb.getIV1Bytes());
+//		IvParameterSpec ivParameterSpec2 = new IvParameterSpec(mb.getIV2Bytes());
+//		byte[] encSecretkey = mb.getEncKeyBytes();
+//		String encBody = mb.getEncMessage();
+//		
+//		
+//		//Keystore
+//		KeyStore ks = KeyStore.getInstance("JKS");
+//		ks.load(new FileInputStream("./data/userbKS.jks"), "userbp".toCharArray());
+//		PrivateKey ubpk = (PrivateKey) ks.getKey("userb", "userbp".toCharArray());
+//		
+//		Cipher rsaCipherDec = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+//		rsaCipherDec.init(Cipher.DECRYPT_MODE, ubpk);
+//		byte[] decryptedKey = rsaCipherDec.doFinal(encSecretkey);
+//		
+//		SecretKey secretKey = new SecretKeySpec(decryptedKey, "AES");
+//		System.out.println("Dekriptovan kljuc: " + secretKey.hashCode());
+//		
+//		//inicijalizacija za dekriptovanje
+//		aesCipherDec.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec1);
+//				
+//		
+//		//dekripcija i dekompresija body-a
+//		String receivedBodyTxt = new String(aesCipherDec.doFinal(Base64.decode(encBody)));
+//		String decompressedBodyText = GzipUtil.decompress(Base64.decode(receivedBodyTxt));
+//		System.out.println("Body text: " + decompressedBodyText);
+//		
+//		
+//		//inicijalizacija za dekriptovanje
+//		aesCipherDec.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec2);
+//		
+//		//dekompresovanje i dekriptovanje subject-a
+//		String decryptedSubjectTxt = new String(aesCipherDec.doFinal(Base64.decode(chosenMessage.getSubject())));
+//		String decompressedSubjectTxt = GzipUtil.decompress(Base64.decode(decryptedSubjectTxt));
+//		System.out.println("Subject text: " + new String(decompressedSubjectTxt));
 	}
 	
 	
