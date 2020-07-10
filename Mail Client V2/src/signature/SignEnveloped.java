@@ -107,7 +107,7 @@ public class SignEnveloped {
 			
 			//ucitavamo podatke
 			BufferedInputStream in = new BufferedInputStream(new FileInputStream(KEY_STORE_FILE));
-			ks.load(in, "userap".toCharArray());
+			ks.load(in, "123".toCharArray());
 			
 			if(ks.isKeyEntry("usera")) {
 				Certificate cert = ks.getCertificate("usera");
@@ -134,10 +134,10 @@ public class SignEnveloped {
 			
 			//ucitavamo podatke
 			BufferedInputStream in = new BufferedInputStream(new FileInputStream(KEY_STORE_FILE));
-			ks.load(in, "userap".toCharArray());
+			ks.load(in, "123".toCharArray());
 			
 			if(ks.isKeyEntry("usera")) {
-				PrivateKey pk = (PrivateKey) ks.getKey("usera", "userap".toCharArray());
+				PrivateKey pk = (PrivateKey) ks.getKey("usera", "123".toCharArray());
 				return pk;
 			}
 			else

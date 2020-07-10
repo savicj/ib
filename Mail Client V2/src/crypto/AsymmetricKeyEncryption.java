@@ -88,10 +88,10 @@ public class AsymmetricKeyEncryption {
 			KeyStore ks = KeyStore.getInstance("JKS", "SUN");
 			// ucitavamo podatke
 			BufferedInputStream in = new BufferedInputStream(new FileInputStream(KEY_STORE_FILE));
-			ks.load(in, "userap".toCharArray());
+			ks.load(in, "123".toCharArray());
 
-			if (ks.isKeyEntry("usera")) {
-				Certificate cert = ks.getCertificate("usera");
+			if (ks.isKeyEntry("userb")) {
+				Certificate cert = ks.getCertificate("userbCER");
 				return cert;
 			} else
 				return null;
